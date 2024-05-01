@@ -1,0 +1,6 @@
+@Bislerium.WebAPI_HostAddress = http://localhost:5234
+
+GET {{Bislerium.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

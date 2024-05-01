@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "2uLjj1tJxH9y/sO1vnDLcioo/etkYPD2/MXVqc3FlSg=",
+  "Source": "Bislerium.WebAPI",
+  "BasePath": "_content/Bislerium.WebAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

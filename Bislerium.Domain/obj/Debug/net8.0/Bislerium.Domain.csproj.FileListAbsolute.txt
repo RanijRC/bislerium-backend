@@ -1,0 +1,11 @@
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\bin\Debug\net8.0\Bislerium.Domain.deps.json
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\bin\Debug\net8.0\Bislerium.Domain.dll
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\bin\Debug\net8.0\Bislerium.Domain.pdb
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\obj\Debug\net8.0\Bislerium.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\obj\Debug\net8.0\Bislerium.Domain.AssemblyInfoInputs.cache
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\obj\Debug\net8.0\Bislerium.Domain.AssemblyInfo.cs
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\obj\Debug\net8.0\Bislerium.Domain.csproj.CoreCompileInputs.cache
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\obj\Debug\net8.0\Bislerium.Domain.dll
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\obj\Debug\net8.0\refint\Bislerium.Domain.dll
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\obj\Debug\net8.0\Bislerium.Domain.pdb
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.Domain\obj\Debug\net8.0\ref\Bislerium.Domain.dll
