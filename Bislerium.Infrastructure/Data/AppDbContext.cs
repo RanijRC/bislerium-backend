@@ -11,5 +11,7 @@ namespace Bislerium.Infrastructure.Data
         }
 
         public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<SystemRole> SystemRoles { get; set; }
+    
     }
 }

@@ -26,12 +26,13 @@ namespace Bislerium.Infrastructure.Repository.Implementation
         public async Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO)
         {
             var getUser = await appDbContext.Users.FirstOrDefaultAsync(u => u.Email == loginDTO.UsernameOrEmail || u.Username == loginDTO.UsernameOrEmail);
-            if (getUser == null) return new LoginResponse(false, "User not found, sorry");
+            if (getUser == null)
+                return new LoginResponse(false, "User not found, sorry");
 
             bool checkPassword = BCrypt.Net.BCrypt.Verify(loginDTO.Password, getUser.Password);
             if (checkPassword)
             {
-                //Generate JWT Token
+                // Generate JWT Token
                 string jwtToken = GenerateJWTToken(getUser);
                 return new LoginResponse(true, "Login successfully", jwtToken);
             }
@@ -41,8 +42,12 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             }
         }
 
+
         public async Task<RegisterResponse> RegisterUserAsync(RegisterDTO registerDTO)
         {
+            var existingUsersCount = await appDbContext.Users.CountAsync();
+            string role = existingUsersCount == 0 ? SystemRole.Admin : SystemRole.Blogger;
+
             var getUser = await FindUserByEmailOrUsername(registerDTO.Email!);
             if (getUser != null)
                 return new RegisterResponse(false, "User with this email already exists");
@@ -58,7 +63,8 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 Lastname = registerDTO.Lastname!,
                 Email = registerDTO.Email!,
                 Username = registerDTO.Username!,
-                Password = BCrypt.Net.BCrypt.HashPassword(registerDTO.Password!)
+                Password = BCrypt.Net.BCrypt.HashPassword(registerDTO.Password!),
+                Role = role
             });
             await appDbContext.SaveChangesAsync();
             return new RegisterResponse(true, "Registration completed");
@@ -73,6 +79,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username!),
                 new Claim(ClaimTypes.Email, user.Email!),
+                new Claim(ClaimTypes.Role, user.Role!)
             };
             var token = new JwtSecurityToken(
                 issuer: configuration["Jwt:Issuer"],
