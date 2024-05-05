@@ -95,5 +95,47 @@ namespace Bislerium.Infrastructure.Repository.Implementation
         {
             return await appDbContext.Users.FirstOrDefaultAsync(u => u.Email == emailOrUsername || u.Username == emailOrUsername);
         }
+
+        public async Task<ApplicationUser> GetUserByIdAsync(int userId)
+        {
+            return await appDbContext.Users.FindAsync(userId);
+        }
+
+        public async Task<IEnumerable<ApplicationUser>> GetUsersAsync()
+        {
+            return await appDbContext.Users.ToListAsync();
+        }
+
+        public async Task<bool> UpdateUserAsync(int userId, RegisterDTO updateDTO)
+        {
+            var user = await appDbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false; // User not found
+            }
+
+            // Update user properties
+            user.Firstname = updateDTO.Firstname!;
+            user.Middlename = updateDTO.Middlename;
+            user.Lastname = updateDTO.Lastname!;
+            user.Email = updateDTO.Email!;
+            user.Username = updateDTO.Username!;
+
+            await appDbContext.SaveChangesAsync();
+            return true; // Update successful
+        }
+
+        public async Task<bool> DeleteUserAsync(int userId)
+        {
+            var user = await appDbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false; // User not found
+            }
+
+            appDbContext.Users.Remove(user);
+            await appDbContext.SaveChangesAsync();
+            return true; // Deletion successful
+        }
     }
 }
