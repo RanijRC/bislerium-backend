@@ -45,5 +45,21 @@ namespace Bislerium.WebAPI.Controllers
             var result = await user.RegisterUserAsync(registerDTO);
             return Ok(result);
         }
+
+        //[HttpPost]
+        //[Route("reset-link")]
+        //public async Task<IActionResult> SendResetLink([FromQuery] string email)
+        //{
+        //    if (email.IsEmpty())
+        //    {
+        //        return BadRequest(new Error()
+        //        {
+        //            Code = "400",
+        //            Description = "Invalid Email!"
+        //        });
+        //    }
+
+        //    await user.
+        //}
     }
 }

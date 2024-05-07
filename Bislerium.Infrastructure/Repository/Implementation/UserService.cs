@@ -5,7 +5,9 @@ using Bislerium.Infrastructure.Repository.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -16,11 +18,13 @@ namespace Bislerium.Infrastructure.Repository.Implementation
     {
         private readonly AppDbContext appDbContext;
         private readonly IConfiguration configuration;
+        private readonly ILogger<UserService> logger;
 
-        public UserService(AppDbContext appDbContext, IConfiguration configuration)
+        public UserService(AppDbContext appDbContext, IConfiguration configuration, ILogger<UserService> logger)
         {
             this.appDbContext = appDbContext;
             this.configuration = configuration;
+            this.logger = logger;
         }
 
         public async Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO)
@@ -76,7 +80,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var userClaims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Include user ID claim
                 new Claim(ClaimTypes.Name, user.Username!),
                 new Claim(ClaimTypes.Email, user.Email!),
                 new Claim(ClaimTypes.Role, user.Role!)
@@ -87,9 +91,10 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 claims: userClaims,
                 expires: DateTime.Now.AddDays(5),
                 signingCredentials: credentials
-                );
+            );
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
 
         private async Task<ApplicationUser?> FindUserByEmailOrUsername(string emailOrUsername)
         {
@@ -137,5 +142,39 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             await appDbContext.SaveChangesAsync();
             return true; // Deletion successful
         }
+
+        public async Task<bool> UpdateUserRoleAsync(int userId, string newRole)
+        {
+            var user = await appDbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return false; // User not found
+            }
+
+            return user.Role == newRole;
+        }
+
+        public Task<ApplicationUser> RequestPasswordReset(string email)
+        {
+            throw new NotImplementedException();
+        }
+
+        
+
+
+
+        //public async Task RequestPasswordResetLink(ApplicationUser user)
+        //{
+        //    var code = GenerateJWTToken(user);
+
+
+        //    var link = $"{webClientBaseUrl.DeepLinksSettings.WebClient}/change-password?email={user.Email}&activationToken={code}";
+
+        //    var emailContent = "Your email content that contains the above link";
+
+        //    await emailSender.SendEmailAsync(user.Email, "Password Reset", emailContent);
+
+        //    logger.LogInformation($"A password reset email was sent to {user.Email}");
+        //}
     }
 }

@@ -12,7 +12,9 @@ namespace Bislerium.Domain.Entities
         public string? PublishedBy { get; set; }
         [Required]
         public string? PublishedDate { get; set; }
+        public int UpVoteCount { get; set; }
         public string? Comments { get; set; }
-        public int Likes { get; set; }
+        public int DownVoteCount { get; set; }
+        
     }
 }

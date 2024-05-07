@@ -4,6 +4,7 @@ using Bislerium.Infrastructure.Repository.Contracts;
 using Bislerium.Infrastructure.Repository.Implementation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Bislerium.WebAPI.Controllers
 {
@@ -66,6 +67,39 @@ namespace Bislerium.WebAPI.Controllers
             }
 
             return NoContent(); // Deletion successful
+        }
+
+        [HttpPut("{id}/role")]
+        public async Task<IActionResult> UpdateUserRole(int id, [FromBody] string newRole)
+        {
+            // Get the currently logged-in user ID (you may have this information in the request)
+            int loggedInUserId = GetCurrentUserId();
+
+            bool isAdmin = await userService.UpdateUserRoleAsync(loggedInUserId, SystemRole.Admin);
+            if (!isAdmin)
+            {
+                return Unauthorized(); // User is not authorized to update roles
+            }
+
+            var success = await userService.UpdateUserRoleAsync(id, newRole);
+            if (!success)
+            {
+                return NotFound(); // User not found or role update failed
+            }
+
+            return NoContent();
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return userId;
+            }
+
+            // Handle the case where the user ID is not available in the token
+            throw new InvalidOperationException("User ID not available in JWT token");
         }
     }
 }
