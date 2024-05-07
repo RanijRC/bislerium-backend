@@ -28,7 +28,7 @@ namespace Bislerium.WebAPI.Controllers
 
             try
             {
-                var result = await user.LoginUserAsync(loginDTO);
+                var result = await user.LoginUserAsync(loginDTO, HttpContext);
                 return Ok(result);
             }
             catch (Exception ex)

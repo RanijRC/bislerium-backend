@@ -8,7 +8,7 @@ namespace Bislerium.Infrastructure.Repository.Contracts
     public interface IUser
     {
         Task<RegisterResponse> RegisterUserAsync(RegisterDTO registerDTO);
-        Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO);
+        Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO, HttpContext httpContext);
         Task<ApplicationUser> GetUserByIdAsync(int userId);
         Task<bool> UpdateUserRoleAsync(int userId, string newRole);
         Task<ApplicationUser> RequestPasswordReset(string email);

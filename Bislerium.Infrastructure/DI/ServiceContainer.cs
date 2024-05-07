@@ -29,6 +29,7 @@ namespace Bislerium.Infrastructure.DI
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                
             })
             .AddJwtBearer(options =>
             {
@@ -45,14 +46,12 @@ namespace Bislerium.Infrastructure.DI
             })
             .AddCookie(options =>
             {
-                options.Cookie.Name = "AuthToken";
+                options.Cookie.Name = "JwtCookie"; // Same as the cookie name you used in UserService
                 options.Cookie.HttpOnly = true;
-                options.Cookie.SameSite = SameSiteMode.Strict;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // or Always if using HTTPS
-                options.ExpireTimeSpan = TimeSpan.FromHours(1); // Adjust expiration time as needed
-                options.LoginPath = "/Account/Login"; // Adjust login path if needed
-                options.AccessDeniedPath = "/Account/AccessDenied"; // Adjust access denied path if needed
-                options.SlidingExpiration = true; // Extend expiration on activity
+                options.ExpireTimeSpan = TimeSpan.FromDays(5); // Example: Cookie expires in 5 days
+                options.SlidingExpiration = true;
+                options.Cookie.SameSite = SameSiteMode.Strict; // Adjust SameSiteMode as needed
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Set to Always if your application uses HTTPS
             });
 
             services.AddCors(options =>

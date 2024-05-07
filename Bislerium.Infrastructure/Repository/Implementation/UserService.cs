@@ -27,7 +27,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             this.logger = logger;
         }
 
-        public async Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO)
+        public async Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO, HttpContext httpContext)
         {
             var getUser = await appDbContext.Users.FirstOrDefaultAsync(u => u.Email == loginDTO.UsernameOrEmail || u.Username == loginDTO.UsernameOrEmail);
             if (getUser == null)
@@ -38,6 +38,17 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             {
                 // Generate JWT Token
                 string jwtToken = GenerateJWTToken(getUser);
+
+                // Create a cookie with the JWT token
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = DateTime.Now.AddDays(5), // Example: Cookie expires in 5 days
+                    Secure = true, // Set to true if your application uses HTTPS
+                    SameSite = SameSiteMode.Strict // Adjust SameSiteMode as needed
+                };
+                httpContext.Response.Cookies.Append("JwtCookie", jwtToken, cookieOptions);
+
                 return new LoginResponse(true, "Login successfully", jwtToken);
             }
             else
@@ -45,6 +56,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 return new LoginResponse(false, "Invalid credentials");
             }
         }
+
 
 
         public async Task<RegisterResponse> RegisterUserAsync(RegisterDTO registerDTO)
