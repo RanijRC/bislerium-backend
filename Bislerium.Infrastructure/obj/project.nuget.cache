@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "WSb62e4rA7bhxN8+7D2f54FrsFg2cCX1VlFOrPj3L7YdKJ5QMR1Tos2saoJ4b1CE4NSLgBClwL0+fRLptjIF5w==",
+  "dgSpecHash": "7E2ZG0+GP+dARbVKQngOfv1THZtuhfHVku11SP5P2Zj+XAfBRp5Zv6vbSbnkRIk7SdIFQeT15u0r7gT0JGgKzw==",
   "success": true,
   "projectFilePath": "D:\\School Files\\Year Files\\Year 3\\Semester 2\\Application Development\\repo\\BisleriumWebApp\\Bislerium.Infrastructure\\Bislerium.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -15,6 +15,7 @@
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\8.0.4\\microsoft.aspnetcore.cryptography.keyderivation.8.0.4.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.http.connections.client\\8.0.4\\microsoft.aspnetcore.http.connections.client.8.0.4.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.http.connections.common\\8.0.4\\microsoft.aspnetcore.http.connections.common.8.0.4.nupkg.sha512",
+    "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.http.features\\5.0.17\\microsoft.aspnetcore.http.features.5.0.17.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\8.0.4\\microsoft.aspnetcore.identity.entityframeworkcore.8.0.4.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.signalr.client\\8.0.4\\microsoft.aspnetcore.signalr.client.8.0.4.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.signalr.client.core\\8.0.4\\microsoft.aspnetcore.signalr.client.core.8.0.4.nupkg.sha512",

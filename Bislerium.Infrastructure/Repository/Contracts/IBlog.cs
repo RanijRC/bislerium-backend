@@ -9,8 +9,8 @@ namespace Bislerium.Infrastructure.Repository.Contracts
 {
     public interface IBlog
     {
-        Task<BlogResponse> CreateBlogAsync(BlogDTO blogDTO);
-        Task<BlogResponse> UpdateBlogAsync(int blogId, BlogDTO blogDTO);
+        Task<BlogResponse> CreateBlogAsync(BlogDTO blogDTO, string userId);
+        Task<BlogResponse> UpdateBlogAsync(int blogId, BlogDTO blogDTO, string userId);
         Task<BlogResponse> DeleteBlogAsync(int blogId);
         
     }

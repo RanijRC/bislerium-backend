@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "+NEVLlDHorwqAQ8tGgYLRBncXHo/XFAF5Gm4lAAt00cs5aPnGoGnp/Ciq/7PjHiI1fp+y6MLDQWvV4r2wiXgKw==",
+  "dgSpecHash": "4UUiErlQbl/1sNGjUG8/kxm3CZ/swmLaW9Iqgqpuxv5aOUlLIBcipTomktQNRWA6zmSfAdtg8Z2ciUj0H8/oQg==",
   "success": true,
   "projectFilePath": "D:\\School Files\\Year Files\\Year 3\\Semester 2\\Application Development\\repo\\BisleriumWebApp\\Bislerium.Application\\Bislerium.Application.csproj",
   "expectedPackageFiles": [
@@ -9,6 +9,7 @@
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.connections.abstractions\\8.0.4\\microsoft.aspnetcore.connections.abstractions.8.0.4.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.http.connections.client\\8.0.4\\microsoft.aspnetcore.http.connections.client.8.0.4.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.http.connections.common\\8.0.4\\microsoft.aspnetcore.http.connections.common.8.0.4.nupkg.sha512",
+    "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.http.features\\5.0.17\\microsoft.aspnetcore.http.features.5.0.17.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.signalr.client\\8.0.4\\microsoft.aspnetcore.signalr.client.8.0.4.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.signalr.client.core\\8.0.4\\microsoft.aspnetcore.signalr.client.core.8.0.4.nupkg.sha512",
     "C:\\Users\\raazc\\.nuget\\packages\\microsoft.aspnetcore.signalr.common\\8.0.4\\microsoft.aspnetcore.signalr.common.8.0.4.nupkg.sha512",

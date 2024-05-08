@@ -9,6 +9,7 @@
       "Bislerium.Application/1.0.0": {
         "dependencies": {
           "BCrypt.Net-Next": "4.0.3",
+          "Microsoft.AspNetCore.Http.Features": "5.0.17",
           "Microsoft.AspNetCore.SignalR.Client": "8.0.4",
           "Microsoft.AspNetCore.SignalR.Core": "1.1.0"
         },
@@ -69,6 +70,18 @@
           "lib/net8.0/Microsoft.AspNetCore.Http.Connections.Common.dll": {
             "assemblyVersion": "8.0.0.0",
             "fileVersion": "8.0.424.17014"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Http.Features/5.0.17": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "8.0.0",
+          "System.IO.Pipelines": "8.0.0"
+        },
+        "runtime": {
+          "lib/net5.0/Microsoft.AspNetCore.Http.Features.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.1722.21507"
           }
         }
       },
@@ -324,6 +337,13 @@
       "sha512": "sha512-SG02A6/ZET3sCW/PiJumg3q4yZdBZeMetdy/ebS4ZcmFPr+yI9sSmLAw9MHZVNNxxBWM5VuLg463YwlXoxhJHQ==",
       "path": "microsoft.aspnetcore.http.connections.common/8.0.4",
       "hashPath": "microsoft.aspnetcore.http.connections.common.8.0.4.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Http.Features/5.0.17": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3jG2xS+dx8DDCGV/F+STdPTg89lX3ao3dF/VEPvJaz3wzBIjuadipTtYNEXDIVuOPZwb6jdmhrX9jkzOIBm5cw==",
+      "path": "microsoft.aspnetcore.http.features/5.0.17",
+      "hashPath": "microsoft.aspnetcore.http.features.5.0.17.nupkg.sha512"
     },
     "Microsoft.AspNetCore.SignalR.Client/8.0.4": {
       "type": "package",
