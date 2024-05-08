@@ -3,6 +3,7 @@ using Bislerium.Domain.Entities;
 using Bislerium.Infrastructure.Data;
 using Bislerium.Infrastructure.Repository.Contracts;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -19,12 +20,14 @@ namespace Bislerium.Infrastructure.Repository.Implementation
         private readonly AppDbContext appDbContext;
         private readonly IConfiguration configuration;
         private readonly ILogger<UserService> logger;
+        private readonly IEmailSender emailSender;
 
-        public UserService(AppDbContext appDbContext, IConfiguration configuration, ILogger<UserService> logger)
+        public UserService(AppDbContext appDbContext, IConfiguration configuration, ILogger<UserService> logger, IEmailSender emailSender)
         {
             this.appDbContext = appDbContext;
             this.configuration = configuration;
             this.logger = logger;
+            this.emailSender = emailSender;
         }
 
         public async Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO, HttpContext httpContext)
@@ -166,27 +169,21 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             return user.Role == newRole;
         }
 
-        public Task<ApplicationUser> RequestPasswordReset(string email)
+        public async Task<bool> RequestPasswordReset(string email)
         {
-            throw new NotImplementedException();
+            var user = await FindUserByEmailOrUsername(email);
+            if(user == null) 
+            {
+                return false;
+            }
+
+            var resetToken = GenerateJWTToken(user);
+
+            string resetUrl = $"http://localhost:3000/user/api/resetpassword?token={resetToken}";
+            string emailBody = $"Click the link below to reset your password:\n{resetUrl}";
+            await emailSender.SendEmailAsync(email, "Password Reset Request", emailBody);
+
+            return true;
         }
-
-        
-
-
-
-        //public async Task RequestPasswordResetLink(ApplicationUser user)
-        //{
-        //    var code = GenerateJWTToken(user);
-
-
-        //    var link = $"{webClientBaseUrl.DeepLinksSettings.WebClient}/change-password?email={user.Email}&activationToken={code}";
-
-        //    var emailContent = "Your email content that contains the above link";
-
-        //    await emailSender.SendEmailAsync(user.Email, "Password Reset", emailContent);
-
-        //    logger.LogInformation($"A password reset email was sent to {user.Email}");
-        //}
     }
 }

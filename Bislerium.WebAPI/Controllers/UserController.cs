@@ -46,20 +46,27 @@ namespace Bislerium.WebAPI.Controllers
             return Ok(result);
         }
 
-        //[HttpPost]
-        //[Route("reset-link")]
-        //public async Task<IActionResult> SendResetLink([FromQuery] string email)
-        //{
-        //    if (email.IsEmpty())
-        //    {
-        //        return BadRequest(new Error()
-        //        {
-        //            Code = "400",
-        //            Description = "Invalid Email!"
-        //        });
-        //    }
+        [HttpPost]
+        [Route("resetpassword")]
+        public async Task<ActionResult<RegisterResponse>> ResetPassword(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest(new { message = "Email is required for password reset." });
+            }
 
-        //    await user.
-        //}
+            try
+            {
+                // Request password reset and send email
+                var resetResult = await user.RequestPasswordReset(email);
+                return Ok(resetResult);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception and return a generic error message
+                return StatusCode(500, new { message = "An error occurred during password reset request." });
+            }
+        }
+
     }
 }
