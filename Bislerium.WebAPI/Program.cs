@@ -1,4 +1,5 @@
 using Bislerium.Infrastructure.DI;
+using Bislerium.Infrastructure.SignalHubs;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

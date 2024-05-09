@@ -1,4 +1,5 @@
 ﻿using Bislerium.Application.DTOs;
+using Bislerium.Infrastructure.Data;
 using Bislerium.Infrastructure.Repository.Contracts;
 using Bislerium.Infrastructure.Repository.Implementation;
 using Microsoft.AspNetCore.Http;
@@ -11,10 +12,12 @@ namespace Bislerium.WebAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUser user;
+        private readonly AppDbContext appDbContext;
 
-        public UserController(IUser user)
+        public UserController(IUser user, AppDbContext appDbContext)
         {
             this.user = user;
+            this.appDbContext = appDbContext;
         }
 
         [HttpPost]
@@ -43,30 +46,62 @@ namespace Bislerium.WebAPI.Controllers
         public async Task<ActionResult<LoginResponse>> RegisterUser(RegisterDTO registerDTO)
         {
             var result = await user.RegisterUserAsync(registerDTO);
+
+            if (!result.Flag)
+            {
+                // User registration failed due to validation error
+                return BadRequest(new { message = result.Message });
+            }
+
+            // User registered successfully
             return Ok(result);
         }
 
         [HttpPost]
-        [Route("resetpassword")]
-        public async Task<ActionResult<RegisterResponse>> ResetPassword(string email)
+        [Route("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] string email)
         {
             if (string.IsNullOrEmpty(email))
             {
-                return BadRequest(new { message = "Email is required for password reset." });
+                return BadRequest("Email is required for password reset");
             }
 
-            try
+            var users = await user.ForgotPassword(email);
+            if (users != null)
             {
-                // Request password reset and send email
-                var resetResult = await user.RequestPasswordReset(email);
-                return Ok(resetResult);
+                // Generate the password reset token for the user
+                var resetToken = await user.GeneratePasswordResetTokenAsync(users);
+
+                // Store the reset token in the database (assuming you have a ResetToken field in your user model)
+                users.ResetToken = resetToken;
+                users.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1); // Set token expiration time (e.g., 1 hour)
+                await appDbContext.SaveChangesAsync();
+
+                // Send the password reset email
+                string subject = "Password Reset Request";
+                string callbackUrl = $"http://yourwebsite.com/reset-password?token={resetToken}";
+
+                // Construct the email body with the password reset link
+                string body = $"Click the link below to reset your password:\n{callbackUrl}";
+
+                // Send the email using a method or service for email sending
+                await SendEmailAsync(email, subject, body);
+
+                return Ok("Password reset email sent successfully");
             }
-            catch (Exception ex)
+            else
             {
-                // Log the exception and return a generic error message
-                return StatusCode(500, new { message = "An error occurred during password reset request." });
+                // User not found or password reset could not be initiated
+                return BadRequest("User not found or password reset could not be initiated");
             }
         }
 
+        // Method for sending email (example implementation)
+        private async Task SendEmailAsync(string email, string subject, string body)
+        {
+            // Implementation for sending email using your preferred email sending method or service
+            // For example, you can use SendGrid, SMTP, or any other email service
+        }
     }
 }
+

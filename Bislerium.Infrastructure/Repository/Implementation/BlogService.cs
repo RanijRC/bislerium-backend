@@ -2,7 +2,9 @@
 using Bislerium.Domain.Entities;
 using Bislerium.Infrastructure.Data;
 using Bislerium.Infrastructure.Repository.Contracts;
+using Bislerium.Infrastructure.SignalHubs;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bislerium.Infrastructure.Repository.Implementation
@@ -11,10 +13,12 @@ namespace Bislerium.Infrastructure.Repository.Implementation
     {
 
         private readonly AppDbContext appDbContext;
+        private readonly IHubContext<VoteHub> hubContext;
 
-        public BlogService(AppDbContext appDbContext)
+        public BlogService(AppDbContext appDbContext, IHubContext<VoteHub> hubContext)
         {
             this.appDbContext = appDbContext;
+            this.hubContext = hubContext;
         }
 
         public async Task<BlogResponse> CreateBlogAsync(BlogDTO blogDTO, string userId)
@@ -102,5 +106,51 @@ namespace Bislerium.Infrastructure.Repository.Implementation
 
             return "/uploads/" + uniqueFileName; // Return the URL or path of the saved image
         }
+
+        public async Task<BlogResponse> UpvoteBlogAsync(int blogId)
+        {
+            var blog = await appDbContext.Blogs.FindAsync(blogId);
+            if (blog == null)
+            {
+                return new BlogResponse(false, "Blog not found.");
+            }
+
+            blog.UpVoteCount++;
+            await appDbContext.SaveChangesAsync();
+
+            // Notify clients about the upvote
+            await hubContext.Clients.All.SendAsync("ReceiveVoteUpdate", blogId, blog.UpVoteCount, blog.DownVoteCount);
+
+            return new BlogResponse(true, "Upvoted successfully.");
+        }
+
+        public async Task<BlogResponse> DownvoteBlogAsync(int blogId)
+        {
+            var blog = await appDbContext.Blogs.FindAsync(blogId);
+            if (blog == null)
+            {
+                return new BlogResponse(false, "Blog not found.");
+            }
+
+            blog.DownVoteCount++;
+            await appDbContext.SaveChangesAsync();
+
+            // Notify clients about the downvote
+            await hubContext.Clients.All.SendAsync("ReceiveVoteUpdate", blogId, blog.UpVoteCount, blog.DownVoteCount);
+
+            return new BlogResponse(true, "Downvoted successfully.");
+        }
+
+        public async Task UpdateVoteCounts(int postId, int upVotes, int downVotes)
+        {
+            var blog = await appDbContext.Blogs.FindAsync(postId);
+            if (blog != null)
+            {
+                blog.UpVoteCount = upVotes;
+                blog.DownVoteCount = downVotes;
+                await appDbContext.SaveChangesAsync();
+            }
+        }
+
     }
 }

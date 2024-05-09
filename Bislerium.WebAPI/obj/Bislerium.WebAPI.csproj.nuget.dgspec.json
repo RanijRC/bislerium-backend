@@ -205,6 +205,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.5.0, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[8.0.4, )"
@@ -226,6 +230,10 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[8.0.4, )"
+            },
+            "MimeKit": {
+              "target": "Package",
+              "version": "[4.5.0, )"
             }
           },
           "imports": [

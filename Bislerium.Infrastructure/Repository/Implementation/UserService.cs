@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -19,15 +21,11 @@ namespace Bislerium.Infrastructure.Repository.Implementation
     {
         private readonly AppDbContext appDbContext;
         private readonly IConfiguration configuration;
-        private readonly ILogger<UserService> logger;
-        private readonly IEmailSender emailSender;
 
-        public UserService(AppDbContext appDbContext, IConfiguration configuration, ILogger<UserService> logger, IEmailSender emailSender)
+        public UserService(AppDbContext appDbContext, IConfiguration configuration)
         {
             this.appDbContext = appDbContext;
             this.configuration = configuration;
-            this.logger = logger;
-            this.emailSender = emailSender;
         }
 
         public async Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO, HttpContext httpContext)
@@ -41,6 +39,13 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             {
                 // Generate JWT Token
                 string jwtToken = GenerateJWTToken(getUser);
+
+                // Store the JWT token in the reset token field of the user
+                getUser.ResetToken = jwtToken;
+                getUser.ResetTokenExpiresAt = DateTime.UtcNow.AddDays(1); // Example: Token expires in 1 day
+
+                // Update the user entity in the database
+                await appDbContext.SaveChangesAsync();
 
                 // Create a cookie with the JWT token
                 var cookieOptions = new CookieOptions
@@ -59,6 +64,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 return new LoginResponse(false, "Invalid credentials");
             }
         }
+
 
 
 
@@ -169,21 +175,51 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             return user.Role == newRole;
         }
 
-        public async Task<bool> RequestPasswordReset(string email)
+        public async Task<ApplicationUser> ForgotPassword(string email)
         {
-            var user = await FindUserByEmailOrUsername(email);
-            if(user == null) 
+            // Find the user by email
+            var user = await appDbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
             {
-                return false;
+                // User not found, return null or throw an exception
+                return null;
             }
 
-            var resetToken = GenerateJWTToken(user);
+            // Generate a password reset token (assuming a secure token generation method)
+            string resetToken = GenerateSecureToken();
 
-            string resetUrl = $"http://localhost:3000/user/api/resetpassword?token={resetToken}";
-            string emailBody = $"Click the link below to reset your password:\n{resetUrl}";
-            await emailSender.SendEmailAsync(email, "Password Reset Request", emailBody);
+            // Update the user entity with the reset token and its expiration
+            user.ResetToken = resetToken;
+            user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1); // Set token expiration time (e.g., 1 hour)
 
-            return true;
+            // Save changes to the database
+            await appDbContext.SaveChangesAsync();
+
+            // Return the user entity with the reset token
+            return user;
         }
+
+        public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
+        {
+            // Generate a unique secure token (e.g., using GUID)
+            string resetToken = Guid.NewGuid().ToString();
+
+            // Update the user entity with the reset token and its expiration
+            user.ResetToken = resetToken;
+            user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1); // Set token expiration time (e.g., 1 hour)
+
+            // Save changes to the database
+            await appDbContext.SaveChangesAsync();
+
+            // Return the generated reset token
+            return resetToken;
+        }
+
+        private string GenerateSecureToken()
+        {
+            // Generate a secure token using a cryptographic method (e.g., GUID)
+            return Guid.NewGuid().ToString();
+        }
+
     }
 }

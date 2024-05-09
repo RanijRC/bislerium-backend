@@ -15,6 +15,6 @@ namespace Bislerium.Domain.Entities
         public int UpVoteCount { get; set; }
         public string? Comments { get; set; }
         public int DownVoteCount { get; set; }
-        
+
     }
 }

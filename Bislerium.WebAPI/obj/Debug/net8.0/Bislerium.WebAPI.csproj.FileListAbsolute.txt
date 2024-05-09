@@ -158,3 +158,6 @@ D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\Bisler
 D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.WebAPI\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.WebAPI\bin\Debug\net8.0\Microsoft.Extensions.Features.dll
 D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.WebAPI\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.WebAPI\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.WebAPI\bin\Debug\net8.0\MailKit.dll
+D:\School Files\Year Files\Year 3\Semester 2\Application Development\repo\BisleriumWebApp\Bislerium.WebAPI\bin\Debug\net8.0\MimeKit.dll

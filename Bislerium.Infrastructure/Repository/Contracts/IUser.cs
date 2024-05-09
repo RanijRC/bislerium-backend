@@ -11,7 +11,8 @@ namespace Bislerium.Infrastructure.Repository.Contracts
         Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO, HttpContext httpContext);
         Task<ApplicationUser> GetUserByIdAsync(int userId);
         Task<bool> UpdateUserRoleAsync(int userId, string newRole);
-        Task<bool> RequestPasswordReset(string email);
+        Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user);
+        Task<ApplicationUser> ForgotPassword(string email);
         Task<IEnumerable<ApplicationUser>> GetUsersAsync();
         Task<bool> UpdateUserAsync(int userId, RegisterDTO updateDTO);
         Task<bool> DeleteUserAsync(int userId);

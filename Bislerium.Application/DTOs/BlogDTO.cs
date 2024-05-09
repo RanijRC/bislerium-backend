@@ -12,7 +12,7 @@ namespace Bislerium.Application.DTOs
         public string? Title { get; set; }
         public IFormFile? BlogImage { get; set; }
         public string? PublishedBy { get; set; }
-        public string? PublishedDate { get; set; }
+        public DateTime PublishedDate { get; set; }
         public string? Comments { get; set; }
     }
 }
