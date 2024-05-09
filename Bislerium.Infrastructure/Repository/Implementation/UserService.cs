@@ -32,7 +32,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
         {
             var getUser = await appDbContext.Users.FirstOrDefaultAsync(u => u.Email == loginDTO.UsernameOrEmail || u.Username == loginDTO.UsernameOrEmail);
             if (getUser == null)
-                return new LoginResponse(false, "User not found, sorry");
+                return new LoginResponse(false, "User not found");
 
             bool checkPassword = BCrypt.Net.BCrypt.Verify(loginDTO.Password, getUser.Password);
             if (checkPassword)
@@ -40,9 +40,8 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 // Generate JWT Token
                 string jwtToken = GenerateJWTToken(getUser);
 
-                // Store the JWT token in the reset token field of the user
-                getUser.ResetToken = jwtToken;
-                getUser.ResetTokenExpiresAt = DateTime.UtcNow.AddDays(1); // Example: Token expires in 1 day
+                // Store the JWT token in the token field of the user
+                getUser.Token = jwtToken;
 
                 // Update the user entity in the database
                 await appDbContext.SaveChangesAsync();
@@ -57,16 +56,13 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 };
                 httpContext.Response.Cookies.Append("JwtCookie", jwtToken, cookieOptions);
 
-                return new LoginResponse(true, "Login successfully", jwtToken);
+                return new LoginResponse(true, "Login successfully", jwtToken, getUser.Id); // Return UserId along with token
             }
             else
             {
                 return new LoginResponse(false, "Invalid credentials");
             }
         }
-
-
-
 
         public async Task<RegisterResponse> RegisterUserAsync(RegisterDTO registerDTO)
         {
@@ -117,7 +113,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
         }
 
 
-        private async Task<ApplicationUser?> FindUserByEmailOrUsername(string emailOrUsername)
+        public async Task<ApplicationUser?> FindUserByEmailOrUsername(string emailOrUsername)
         {
             return await appDbContext.Users.FirstOrDefaultAsync(u => u.Email == emailOrUsername || u.Username == emailOrUsername);
         }
@@ -185,8 +181,8 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 return null;
             }
 
-            // Generate a password reset token (assuming a secure token generation method)
-            string resetToken = GenerateSecureToken();
+            // Generate the password reset token
+            string resetToken = await GeneratePasswordResetToken(user);
 
             // Update the user entity with the reset token and its expiration
             user.ResetToken = resetToken;
@@ -195,11 +191,12 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             // Save changes to the database
             await appDbContext.SaveChangesAsync();
 
-            // Return the user entity with the reset token
+            // Return the updated user object
             return user;
         }
 
-        public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
+
+        public async Task<string> GeneratePasswordResetToken(ApplicationUser user)
         {
             // Generate a unique secure token (e.g., using GUID)
             string resetToken = Guid.NewGuid().ToString();
@@ -208,18 +205,11 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             user.ResetToken = resetToken;
             user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1); // Set token expiration time (e.g., 1 hour)
 
-            // Save changes to the database
+            // Save changes to the database asynchronously
             await appDbContext.SaveChangesAsync();
 
             // Return the generated reset token
             return resetToken;
         }
-
-        private string GenerateSecureToken()
-        {
-            // Generate a secure token using a cryptographic method (e.g., GUID)
-            return Guid.NewGuid().ToString();
-        }
-
     }
 }

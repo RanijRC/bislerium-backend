@@ -1,6 +1,5 @@
 ﻿using Bislerium.Domain.Entities;
 using Bislerium.Infrastructure.Data;
-using Bislerium.Infrastructure.Helpers;
 using Bislerium.Infrastructure.Repository.Contracts;
 using Bislerium.Infrastructure.Repository.Implementation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -55,7 +54,6 @@ namespace Bislerium.Infrastructure.DI
                 options.Cookie.SameSite = SameSiteMode.Strict; // Adjust SameSiteMode as needed
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Set to Always if your application uses HTTPS
             });
-            services.Configure<EmailSettings>(configuration.GetSection(""));
 
             services.AddCors(options =>
             {
@@ -68,6 +66,7 @@ namespace Bislerium.Infrastructure.DI
             services.AddSignalR();
             services.AddScoped<IUser, UserService>();
             services.AddScoped<IBlog, BlogService>();
+            services.AddTransient<IEmail, EmailService>();
             return services;
         }
     }

@@ -6,6 +6,5 @@ using System.Threading.Tasks;
 
 namespace Bislerium.Application.DTOs
 {
-    public record LoginResponse(bool Flag, string Message =null!, string Token = null!);
-    
+    public record LoginResponse(bool Flag, string Message = null!, string Token = null!, int UserId = 0);
 }
