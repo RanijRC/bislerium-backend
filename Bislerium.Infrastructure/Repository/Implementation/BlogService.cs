@@ -3,154 +3,273 @@ using Bislerium.Domain.Entities;
 using Bislerium.Infrastructure.Data;
 using Bislerium.Infrastructure.Repository.Contracts;
 using Bislerium.Infrastructure.SignalHubs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace Bislerium.Infrastructure.Repository.Implementation
 {
     public class BlogService : IBlog
     {
-
         private readonly AppDbContext appDbContext;
-        private readonly IHubContext<VoteHub> hubContext;
 
-        public BlogService(AppDbContext appDbContext, IHubContext<VoteHub> hubContext)
+        public BlogService(AppDbContext appDbContext)
         {
             this.appDbContext = appDbContext;
-            this.hubContext = hubContext;
         }
 
-        public async Task<BlogResponse> CreateBlogAsync(BlogDTO blogDTO, string userId)
+        public async Task<BlogResponse> CreateBlogAsync(BlogDTO blogDTO, int userId)
         {
-            if(blogDTO == null) 
+            try
             {
-                return new BlogResponse(false, "Blog data is required");
+                // Validate userId, ensure it corresponds to a valid user in your system
+                var user = await appDbContext.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return new BlogResponse(false, "Invalid user ID");
+                }
+
+                // Check if the blog image exceeds the file size limit
+                if (blogDTO.BlogImage != null && blogDTO.BlogImage.Length > 3 * 1024 * 1024) // 3 MB in bytes
+                {
+                    return new BlogResponse(false, "Blog image file size exceeds the limit of 3 Megabytes (MB)");
+                }
+
+                // Create a new blog entity
+                var newBlog = new Blog
+                {
+                    Title = blogDTO.Title,
+                    BlogImage = blogDTO.BlogImage,
+                    PublishedBy = userId,
+                    PublishedDate = DateTime.Now,
+                    Description = blogDTO.Description,
+                    UpVoteCount = 0, // Initialize counts if needed
+                    Comments = "", // Initialize comments if needed
+                    DownVoteCount = 0 // Initialize counts if needed
+                };
+
+                // Add the new blog to the database
+                appDbContext.Blogs.Add(newBlog);
+                await appDbContext.SaveChangesAsync();
+
+                return new BlogResponse(true, "Blog created successfully");
             }
-
-            // Validate file size of the image
-            if (blogDTO.BlogImage != null && blogDTO.BlogImage.Length > 3 * 1024 * 1024) // 3 MB limit
+            catch (Exception ex)
             {
-                return new BlogResponse(false, "The image file size must not exceed 3 MB.");
+                // Handle any exceptions
+                return new BlogResponse(false, $"Error creating blog: {ex.Message}");
             }
-
-            // Create a new blog post
-            var blog = new Blog
-            {
-                Title = blogDTO.Title,
-                BlogImage = blogDTO.BlogImage != null ? await SaveImage(blogDTO.BlogImage) : null,
-                PublishedBy = userId, // Associate the post with the current user
-                PublishedDate = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-            };
-
-            appDbContext.Blogs.Add(blog);
-            await appDbContext.SaveChangesAsync();
-
-            return new BlogResponse(true, "Blog created successfully.");
         }
 
-        public Task<BlogResponse> DeleteBlogAsync(int blogId)
+        public async Task<BlogResponse> UpdateBlogAsync(int blogId, BlogDTO blogDTO, int userId)
+        {
+            try
+            {
+                // Retrieve the blog entity to update
+                var blogToUpdate = await appDbContext.Blogs.FindAsync(blogId);
+                if (blogToUpdate == null)
+                {
+                    return new BlogResponse(false, "Blog not found");
+                }
+
+                // Check if the user is authorized to update the blog (only the creator can update)
+                if (blogToUpdate.PublishedBy != userId)
+                {
+                    return new BlogResponse(false, "You are not authorized to update this blog");
+                }
+
+                // Check if the blog image exceeds the file size limit
+                if (blogDTO.BlogImage != null && blogDTO.BlogImage.Length > 3 * 1024 * 1024) // 3 MB in bytes
+                {
+                    return new BlogResponse(false, "Blog image file size exceeds the limit of 3 Megabytes (MB)");
+                }
+
+                // Update the blog entity with the new details
+                blogToUpdate.Title = blogDTO.Title;
+                blogToUpdate.BlogImage = blogDTO.BlogImage;
+                blogToUpdate.Description = blogDTO.Description;
+                // Update other properties as needed
+
+                // Save changes to the database
+                await appDbContext.SaveChangesAsync();
+
+                return new BlogResponse(true, "Blog updated successfully");
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return new BlogResponse(false, $"Error updating blog: {ex.Message}");
+            }
+        }
+
+
+
+        public async Task<BlogResponse> DeleteBlogAsync(int blogId, int userId)
+        {
+            try
+            {
+                // Retrieve the blog entity to delete
+                var blogToDelete = await appDbContext.Blogs.FindAsync(blogId);
+                if (blogToDelete == null)
+                {
+                    return new BlogResponse(false, "Blog not found");
+                }
+
+                // Check if the current user is the creator of the blog
+                if (blogToDelete.PublishedBy != userId)
+                {
+                    return new BlogResponse(false, "You are not authorized to delete this blog");
+                }
+
+                // Remove the blog entity from the database
+                appDbContext.Blogs.Remove(blogToDelete);
+                await appDbContext.SaveChangesAsync();
+
+                return new BlogResponse(true, "Blog deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return new BlogResponse(false, $"Error deleting blog: {ex.Message}");
+            }
+        }
+
+
+        public Task<BlogResponse> DeleteCommentAsync(int commentId, int userId)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<BlogResponse> UpdateBlogAsync(int blogId, BlogDTO blogDTO, string userId)
+        public async Task<IEnumerable<BlogDTO>> GetAllBlogsAsync()
+        {
+            try
+            {
+                // Retrieve all blogs from the database
+                var blogs = await appDbContext.Blogs.ToListAsync();
+
+                // Map the blogs to BlogDTO objects
+                var blogDTOs = blogs.Select(blog => new BlogDTO
+                {
+                    Title = blog.Title,
+                    BlogImage = blog.BlogImage,
+                    Description = blog.Description,
+                    PublishedDate = blog.PublishedDate
+                });
+
+                return blogDTOs;
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                Console.WriteLine($"Error getting all blogs: {ex.Message}");
+                return null; // Or handle the error and return an empty collection
+            }
+        }
+
+
+        public async Task<BlogDTO> GetBlogByIdAsync(int blogId)
+        {
+            try
+            {
+                // Retrieve the blog from the database by its ID
+                var blog = await appDbContext.Blogs.FindAsync(blogId);
+
+                if (blog == null)
+                {
+                    return null; // Or handle the case where the blog is not found
+                }
+
+                // Map the blog to a BlogDTO object
+                var blogDTO = new BlogDTO
+                {
+                    Title = blog.Title,
+                    BlogImage = blog.BlogImage,
+                    Description = blog.Description,
+                    PublishedDate = blog.PublishedDate
+                };
+
+                return blogDTO;
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                Console.WriteLine($"Error getting blog by ID: {ex.Message}");
+                return null; // Or handle the error appropriately
+            }
+        }
+
+
+        public async Task<IEnumerable<BlogDTO>> GetBlogsByUserIdAsync(int userId)
+        {
+            try
+            {
+                // Retrieve blogs from the database by userId
+                var blogs = await appDbContext.Blogs.Where(blog => blog.PublishedBy == userId).ToListAsync();
+
+                // Map the blogs to BlogDTO objects
+                var blogDTOs = blogs.Select(blog => new BlogDTO
+                {
+                    Title = blog.Title,
+                    BlogImage = blog.BlogImage,
+                    Description = blog.Description,
+                    PublishedDate = blog.PublishedDate
+                });
+
+                return blogDTOs;
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                Console.WriteLine($"Error getting blogs by user ID: {ex.Message}");
+                return null; // Or handle the error and return an empty collection
+            }
+        }
+
+
+        public Task<BlogResponse> AddCommentAsync(int blogId, CommentDTO commentDTO, int userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<BlogResponse> UpVoteBlogAsync(int blogId)
+        {
+            try
+            {
+                // Initialize SignalR connection
+                var hubConnection = new HubConnectionBuilder()
+                    .WithUrl("http://localhost:3000/voteHub")
+                    .Build();
+
+                // Start the connection
+                await hubConnection.StartAsync();
+
+                // Invoke the UpvoteBlog method on the VoteHub
+                await hubConnection.InvokeAsync("UpvoteBlog", blogId);
+
+                return new BlogResponse(true, "Blog upvoted successfully");
+            }
+            catch (Exception ex)
+            {
+                return new BlogResponse(false, "Error upvoting blog: " + ex.Message);
+            }
+        }
+
+        public async Task<BlogResponse> DownVoteBlogAsync(int blogId)
         {
             var blog = await appDbContext.Blogs.FindAsync(blogId);
             if (blog == null)
             {
-                return new BlogResponse(false, "Blog not found.");
+                return new BlogResponse(false, "Blog not found");
             }
 
-            // Check if the currently authenticated user is the owner of the blog post
-            if (blog.PublishedBy != userId)
-            {
-                return new BlogResponse(false, "You are not authorized to update this blog post.");
-            }
-
-            // Validate file size of the image
-            if (blogDTO.BlogImage != null && blogDTO.BlogImage.Length > 3 * 1024 * 1024) // 3 MB limit
-            {
-                return new BlogResponse(false, "The image file size must not exceed 3 MB.");
-            }
-
-            // Update the blog post
-            blog.Title = blogDTO.Title;
-            if (blogDTO.BlogImage != null)
-            {
-                blog.BlogImage = await SaveImage(blogDTO.BlogImage);
-            }
-
-            await appDbContext.SaveChangesAsync();
-
-            return new BlogResponse(true, "Blog updated successfully.");
-        }
-
-        private async Task<string> SaveImage(IFormFile image)
-        {
-            // Implement logic to save the image file, e.g., to a storage service or disk
-            // Here's a simple example assuming you are saving to a folder named "uploads" in your project directory
-            var uploadsDirectory = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-            if (!Directory.Exists(uploadsDirectory))
-            {
-                Directory.CreateDirectory(uploadsDirectory);
-            }
-
-            var uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
-            var filePath = Path.Combine(uploadsDirectory, uniqueFileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await image.CopyToAsync(stream);
-            }
-
-            return "/uploads/" + uniqueFileName; // Return the URL or path of the saved image
-        }
-
-        public async Task<BlogResponse> UpvoteBlogAsync(int blogId)
-        {
-            var blog = await appDbContext.Blogs.FindAsync(blogId);
-            if (blog == null)
-            {
-                return new BlogResponse(false, "Blog not found.");
-            }
-
-            blog.UpVoteCount++;
-            await appDbContext.SaveChangesAsync();
-
-            // Notify clients about the upvote
-            await hubContext.Clients.All.SendAsync("ReceiveVoteUpdate", blogId, blog.UpVoteCount, blog.DownVoteCount);
-
-            return new BlogResponse(true, "Upvoted successfully.");
-        }
-
-        public async Task<BlogResponse> DownvoteBlogAsync(int blogId)
-        {
-            var blog = await appDbContext.Blogs.FindAsync(blogId);
-            if (blog == null)
-            {
-                return new BlogResponse(false, "Blog not found.");
-            }
-
+            // Increment the downvote count
             blog.DownVoteCount++;
+
+            // Save changes to the database
             await appDbContext.SaveChangesAsync();
 
-            // Notify clients about the downvote
-            await hubContext.Clients.All.SendAsync("ReceiveVoteUpdate", blogId, blog.UpVoteCount, blog.DownVoteCount);
-
-            return new BlogResponse(true, "Downvoted successfully.");
+            return new BlogResponse(true, "Blog downvoted successfully");
         }
-
-        public async Task UpdateVoteCounts(int postId, int upVotes, int downVotes)
-        {
-            var blog = await appDbContext.Blogs.FindAsync(postId);
-            if (blog != null)
-            {
-                blog.UpVoteCount = upVotes;
-                blog.DownVoteCount = downVotes;
-                await appDbContext.SaveChangesAsync();
-            }
-        }
-
     }
 }

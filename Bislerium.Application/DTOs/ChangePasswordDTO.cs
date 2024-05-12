@@ -6,5 +6,9 @@ using System.Threading.Tasks;
 
 namespace Bislerium.Application.DTOs
 {
-    public record LoginResponse(bool Flag, string Message = null!, string Token = null!, int UserId = 0, string Role = null!);
+    public class ChangePasswordDTO
+    {
+        public string Token { get; set; }
+        public string NewPassword { get; set; }
+    }
 }

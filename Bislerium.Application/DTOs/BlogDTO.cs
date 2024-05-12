@@ -10,9 +10,8 @@ namespace Bislerium.Application.DTOs
     public class BlogDTO
     {
         public string? Title { get; set; }
-        public IFormFile? BlogImage { get; set; }
-        public string? PublishedBy { get; set; }
+        public string? BlogImage { get; set; }
+        public string? Description { get; set; }
         public DateTime PublishedDate { get; set; }
-        public string? Comments { get; set; }
     }
 }

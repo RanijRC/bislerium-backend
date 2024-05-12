@@ -2,6 +2,7 @@
 using Bislerium.Domain.Entities;
 using Bislerium.Infrastructure.Repository.Contracts;
 using Bislerium.Infrastructure.Repository.Implementation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -27,16 +28,18 @@ namespace Bislerium.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ApplicationUser>> GetUser(int id)
+        public async Task<ActionResult<string>> GetUsername(int id)
         {
             var user = await userService.GetUserByIdAsync(id);
+            string username = user.Username;
             if (user == null)
             {
                 return NotFound();
             }
 
-            return Ok(user);
+            return Ok(username);
         }
+
 
         [HttpPost]
         public async Task<ActionResult<RegisterResponse>> CreateUser(RegisterDTO registerDTO)
@@ -69,37 +72,35 @@ namespace Bislerium.WebAPI.Controllers
             return NoContent(); // Deletion successful
         }
 
-        [HttpPut("{id}/role")]
-        public async Task<IActionResult> UpdateUserRole(int id, [FromBody] string newRole)
+        [HttpPut("role")]
+        [Authorize] // Requires authentication
+        public async Task<IActionResult> UpdateUserRole([FromBody] UserUpdateDTO userUpdateDTO)
         {
-            // Get the currently logged-in user ID (you may have this information in the request)
-            int loggedInUserId = GetCurrentUserId();
+            // Get the current user's ID from the JWT token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            Console.WriteLine(userIdClaim);
+            if (userIdClaim == null)
+            {
+                return Unauthorized(); // Token doesn't contain user ID
+            }
 
-            bool isAdmin = await userService.UpdateUserRoleAsync(loggedInUserId, SystemRole.Admin);
-            if (!isAdmin)
+            int loggedInUserId = int.Parse(userIdClaim.Value);
+
+            // Check if the current user is an admin
+            var loggedInUser = await userService.GetUserByIdAsync(loggedInUserId);
+            if (loggedInUser == null || !loggedInUser.Role.Equals(SystemRole.Admin, StringComparison.OrdinalIgnoreCase))
             {
                 return Unauthorized(); // User is not authorized to update roles
             }
 
-            var success = await userService.UpdateUserRoleAsync(id, newRole);
+            // Update the user's role
+            var success = await userService.UpdateUserRoleAsync(userUpdateDTO.Id, userUpdateDTO.NewRole);
             if (!success)
             {
                 return NotFound(); // User not found or role update failed
             }
 
             return NoContent();
-        }
-
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return userId;
-            }
-
-            // Handle the case where the user ID is not available in the token
-            throw new InvalidOperationException("User ID not available in JWT token");
         }
     }
 }

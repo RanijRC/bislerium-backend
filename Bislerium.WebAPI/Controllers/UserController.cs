@@ -31,7 +31,7 @@ namespace Bislerium.WebAPI.Controllers
 
             try
             {
-                var result = await userService.LoginUserAsync(loginDTO, HttpContext);
+                var result = await userService.LoginUserAsync(loginDTO);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -72,7 +72,7 @@ namespace Bislerium.WebAPI.Controllers
 
                     // Send the password reset email
                     string subject = "Password Reset Request";
-                    string body = $"Click the link below to reset your password:\nhttp://localhost:3000/resetpassword?token={resetToken}";
+                    string body = $"Click the link below to reset your password:\nhttp://localhost:3000/reset-password?token={resetToken}";
                     await emailService.SendEmailAsync(user.Email, subject, body);
 
                     return Ok("Password reset link sent successfully.");
@@ -85,6 +85,29 @@ namespace Bislerium.WebAPI.Controllers
             // Invalid model state, return bad request
             return BadRequest(ModelState);
         }
+
+        [HttpPut]
+        [Route("changepassword")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Validate the password reset token and change the password
+                var result = await userService.ChangePassword(model.Token, model.NewPassword);
+                if (result.Success)
+                {
+                    return Ok("Password changed successfully.");
+                }
+                else
+                {
+                    return BadRequest(result.Message);
+                }
+            }
+
+            // Invalid model state, return bad request
+            return BadRequest(ModelState);
+        }
+
     }
 }
 

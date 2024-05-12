@@ -1,11 +1,10 @@
-﻿using Bislerium.Domain.Entities;
-using Bislerium.Infrastructure.Data;
+﻿using Bislerium.Infrastructure.Data;
 using Bislerium.Infrastructure.Repository.Contracts;
 using Bislerium.Infrastructure.Repository.Implementation;
+using Bislerium.Infrastructure.SignalHubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +29,7 @@ namespace Bislerium.Infrastructure.DI
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options =>
             {
@@ -64,9 +63,16 @@ namespace Bislerium.Infrastructure.DI
                 .AllowCredentials());
             });
             services.AddSignalR();
+            services.AddScoped<VoteHub>();
             services.AddScoped<IUser, UserService>();
             services.AddScoped<IBlog, BlogService>();
             services.AddTransient<IEmail, EmailService>();
+
+            services.AddSignalR().AddHubOptions<VoteHub>(options =>
+            {
+                options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+                options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+            });
             return services;
         }
     }

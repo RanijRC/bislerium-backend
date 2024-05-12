@@ -28,7 +28,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             this.configuration = configuration;
         }
 
-        public async Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO, HttpContext httpContext)
+        public async Task<LoginResponse> LoginUserAsync(LoginDTO loginDTO)
         {
             var getUser = await appDbContext.Users.FirstOrDefaultAsync(u => u.Email == loginDTO.UsernameOrEmail || u.Username == loginDTO.UsernameOrEmail);
             if (getUser == null)
@@ -39,30 +39,24 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             {
                 // Generate JWT Token
                 string jwtToken = GenerateJWTToken(getUser);
+                int userId = getUser.Id;
+                string role = getUser.Role;
 
-                // Store the JWT token in the token field of the user
+                // Update the user entity with the JWT token
                 getUser.Token = jwtToken;
 
-                // Update the user entity in the database
+                // Save changes to the database
                 await appDbContext.SaveChangesAsync();
 
-                // Create a cookie with the JWT token
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Expires = DateTime.Now.AddDays(5), // Example: Cookie expires in 5 days
-                    Secure = true, // Set to true if your application uses HTTPS
-                    SameSite = SameSiteMode.Strict // Adjust SameSiteMode as needed
-                };
-                httpContext.Response.Cookies.Append("JwtCookie", jwtToken, cookieOptions);
-
-                return new LoginResponse(true, "Login successfully", jwtToken, getUser.Id); // Return UserId along with token
+                // Return the successful login response with the token
+                return new LoginResponse(true, "Login successfully", jwtToken, userId,role);
             }
             else
             {
                 return new LoginResponse(false, "Invalid credentials");
             }
         }
+
 
         public async Task<RegisterResponse> RegisterUserAsync(RegisterDTO registerDTO)
         {
@@ -93,25 +87,28 @@ namespace Bislerium.Infrastructure.Repository.Implementation
 
         private string GenerateJWTToken(ApplicationUser user)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var userClaims = new[]
+
+            var userClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Include user ID claim
-                new Claim(ClaimTypes.Name, user.Username!),
-                new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(ClaimTypes.Role, user.Role!)
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
             };
+
             var token = new JwtSecurityToken(
                 issuer: configuration["Jwt:Issuer"],
                 audience: configuration["Jwt:Audience"],
                 claims: userClaims,
-                expires: DateTime.Now.AddDays(5),
+                expires: DateTime.Now.AddDays(1),
                 signingCredentials: credentials
             );
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
 
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+            return jwtTokenHandler.WriteToken(token);
+        }
 
         public async Task<ApplicationUser?> FindUserByEmailOrUsername(string emailOrUsername)
         {
@@ -195,7 +192,6 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             return user;
         }
 
-
         public async Task<string> GeneratePasswordResetToken(ApplicationUser user)
         {
             // Generate a unique secure token (e.g., using GUID)
@@ -211,5 +207,31 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             // Return the generated reset token
             return resetToken;
         }
+
+        public async Task<ChangePasswordResponse> ChangePassword(string token, string newPassword)
+        {
+            // Find the user by the reset token
+            var user = await appDbContext.Users.FirstOrDefaultAsync(u => u.ResetToken == token && u.ResetTokenExpiresAt > DateTime.UtcNow);
+            if (user == null)
+            {
+                return new ChangePasswordResponse(false, "Invalid or expired reset token.");
+            }
+
+            // Update the user's password
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            string resetToken = await GeneratePasswordResetToken(user);
+
+
+            // Clear the reset token and its expiration
+            user.ResetToken = resetToken;
+            user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1); 
+
+            // Save changes to the database
+            await appDbContext.SaveChangesAsync();
+
+            return new ChangePasswordResponse(true, "Password changed successfully.");
+        }
+
     }
 }
