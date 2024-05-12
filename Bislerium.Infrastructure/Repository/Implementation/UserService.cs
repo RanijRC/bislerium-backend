@@ -40,6 +40,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 // Generate JWT Token
                 string jwtToken = GenerateJWTToken(getUser);
                 int userId = getUser.Id;
+                string username = getUser.Username;
                 string role = getUser.Role;
 
                 // Update the user entity with the JWT token
@@ -49,7 +50,7 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 await appDbContext.SaveChangesAsync();
 
                 // Return the successful login response with the token
-                return new LoginResponse(true, "Login successfully", jwtToken, userId,role);
+                return new LoginResponse(true, "Login successfull", jwtToken, userId, role, username);
             }
             else
             {

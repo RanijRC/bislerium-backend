@@ -62,7 +62,7 @@ namespace Bislerium.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Bislerium.Domain.Entities.Blog", b =>
@@ -105,7 +105,7 @@ namespace Bislerium.Infrastructure.Migrations
 
                     b.HasIndex("PublishedBy");
 
-                    b.ToTable("Blogs");
+                    b.ToTable("Blogs", (string)null);
                 });
 
             modelBuilder.Entity("Bislerium.Domain.Entities.SystemRole", b =>
@@ -121,7 +121,7 @@ namespace Bislerium.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SystemRoles");
+                    b.ToTable("SystemRoles", (string)null);
                 });
 
             modelBuilder.Entity("Bislerium.Domain.Entities.Blog", b =>

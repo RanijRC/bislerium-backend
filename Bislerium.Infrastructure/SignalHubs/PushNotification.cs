@@ -1,46 +1,14 @@
-﻿//using Bislerium.Infrastructure.Data;
-//using Microsoft.AspNetCore.SignalR;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.SignalR;
 
-//namespace Bislerium.Infrastructure.SignalHubs
-//{
-//    public class PushNotification : Hub
-//    {
-//        private readonly AppDbContext appDbContext; // Inject your DbContext here
 
-//        public PushNotification(AppDbContext appDbContext)
-//        {
-//            this.appDbContext = appDbContext;
-//        }
+namespace Bislerium.Infrastructure.SignalHubs
+{
+    public class PushNotification : Hub
+    {
+        public async Task SendMessage(string user, string message)
+        {
+            await Clients.All.SendAsync("ReceiveMessage", user, message);
+        }
+    }
+}
 
-//        public async Task SendReactionNotification(int postId, string message)
-//        {
-//            // Get the author's userId from the post
-//            var post = appDbContext.Blogs.FirstOrDefault(p => p.Id == postId);
-//            if (post != null)
-//            {
-//                var authorUserId = post.UserId; // Assuming UserId represents the author's identifier
-
-//                // Send the notification to the author
-//                await Clients.User(authorUserId.ToString()).SendAsync("ReceiveNotification", message);
-//            }
-//        }
-
-//        public async Task SendCommentNotification(int postId, string message)
-//        {
-//            // Get the author's userId from the post
-//            var post = appDbContext.Blogs.FirstOrDefault(p => p.Id == postId);
-//            if (post != null)
-//            {
-//                var authorUserId = post.UserId; // Assuming UserId represents the author's identifier
-
-//                // Send the notification to the author
-//                await Clients.User(authorUserId.ToString()).SendAsync("ReceiveNotification", message);
-//            }
-//        }
-//    }
-//}

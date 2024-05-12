@@ -103,8 +103,6 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             }
         }
 
-
-
         public async Task<BlogResponse> DeleteBlogAsync(int blogId, int userId)
         {
             try
@@ -133,12 +131,6 @@ namespace Bislerium.Infrastructure.Repository.Implementation
                 // Handle any exceptions
                 return new BlogResponse(false, $"Error deleting blog: {ex.Message}");
             }
-        }
-
-
-        public Task<BlogResponse> DeleteCommentAsync(int commentId, int userId)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<BlogDTO>> GetAllBlogsAsync()
@@ -226,12 +218,6 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             }
         }
 
-
-        public Task<BlogResponse> AddCommentAsync(int blogId, CommentDTO commentDTO, int userId)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<BlogResponse> UpVoteBlogAsync(int blogId)
         {
             try
@@ -270,6 +256,72 @@ namespace Bislerium.Infrastructure.Repository.Implementation
             await appDbContext.SaveChangesAsync();
 
             return new BlogResponse(true, "Blog downvoted successfully");
+        }
+
+        public async Task<BlogResponse> AddCommentAsync(int blogId, CommentDTO commentDTO, int userId)
+        {
+            // Check if the blog exists
+            var blog = await appDbContext.Blogs.FindAsync(blogId);
+            if (blog == null)
+            {
+                return new BlogResponse(false, "Blog not found");
+            }
+
+            // Create the comment structure
+            var newComment = $"{DateTime.UtcNow}: {commentDTO.Content} (User: {userId})";
+
+            // Add the comment to the blog's comments
+            if (blog.Comments == null)
+            {
+                blog.Comments = newComment;
+            }
+            else
+            {
+                blog.Comments += $"\n{newComment}";
+            }
+
+            // Save changes to the database
+            await appDbContext.SaveChangesAsync();
+
+            return new BlogResponse(true, "Comment added successfully");
+        }
+
+        public async Task<BlogResponse> DeleteCommentAsync(int blogId, int userId)
+        {
+            try
+            {
+                // Find the blog in the database
+                var blog = await appDbContext.Blogs.FindAsync(blogId);
+                if (blog == null)
+                {
+                    return new BlogResponse(false, "Blog not found");
+                }
+
+                // Check if the user is authorized to delete comments on this blog
+                if (blog.PublishedBy != userId)
+                {
+                    return new BlogResponse(false, "Unauthorized to delete comments on this blog");
+                }
+
+                // Check if the blog has any comments to delete
+                if (string.IsNullOrEmpty(blog.Comments))
+                {
+                    return new BlogResponse(false, "No comments to delete");
+                }
+
+                // Optionally, you can clear all comments or implement specific logic to delete a comment
+                blog.Comments = ""; // Clears all comments
+
+                // Save changes to the database
+                await appDbContext.SaveChangesAsync();
+
+                return new BlogResponse(true, "Comments deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return new BlogResponse(false, $"Error deleting comments: {ex.Message}");
+            }
         }
     }
 }

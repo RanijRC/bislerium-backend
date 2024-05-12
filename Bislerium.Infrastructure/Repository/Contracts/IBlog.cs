@@ -19,6 +19,6 @@ namespace Bislerium.Infrastructure.Repository.Contracts
         Task<BlogResponse> UpVoteBlogAsync(int blogId);
         Task<BlogResponse> DownVoteBlogAsync(int blogId);
         Task<BlogResponse> AddCommentAsync(int blogId, CommentDTO commentDTO, int userId);
-        Task<BlogResponse> DeleteCommentAsync(int commentId, int userId);
+        Task<BlogResponse> DeleteCommentAsync(int blogId, int userId);
     }
 }
